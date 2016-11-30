@@ -6,6 +6,7 @@ import static org.apache.uima.fit.factory.CollectionReaderFactory.createReaderDe
 import java.io.File;
 import java.io.Reader;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 import org.apache.commons.csv.CSVFormat;
@@ -50,9 +51,17 @@ public class Pipeline {
 
 		// TODO put topic model estimation in it's own class, as topic models do
 		// not have to be generated with each run
-		estimateTopicModels();
 
-		// createArffFile(start);
+		//////////////////////////////////
+		// WARNING!!! DO NOT RUN (FOR NOW)
+		//////////////////////////////////
+		//estimateTopicModels(start);
+
+		// show topic models in console
+		showTopicModels();
+		//ArrayList bla = new ArrayList();
+		//bla.remove(index)
+		//createArffFile(start);
 
 		// end
 		Date end = new Date();
@@ -81,7 +90,12 @@ public class Pipeline {
 	 * @param start
 	 * @throws Exception
 	 */
-	private static void estimateTopicModels() throws Exception {
+	private static void estimateTopicModels(Date start) throws Exception {
+
+		SimpleDateFormat sdfDate = new SimpleDateFormat("yyyyMMdd.HHmmss");
+		String startDate = sdfDate.format(start);
+
+		File file = new File("target/mallet/model." + startDate);
 
 		// set up pipeline
 		AnalysisEngineDescription pipeline = createEngineDescription(
@@ -94,7 +108,7 @@ public class Pipeline {
 				createEngineDescription(OpenNlpPosTagger.class),
 				// estimate topic models
 				createEngineDescription(MalletTopicModelEstimator.class,
-						MalletTopicModelEstimator.PARAM_TARGET_LOCATION, MODEL_FILE,
+						MalletTopicModelEstimator.PARAM_TARGET_LOCATION, file,
 						MalletTopicModelEstimator.PARAM_N_ITERATIONS, N_ITERATIONS,
 						MalletTopicModelEstimator.PARAM_N_TOPICS, N_TOPICS));
 
@@ -102,12 +116,16 @@ public class Pipeline {
 		for (JCas jcas : SimplePipeline.iteratePipeline(getReader(), pipeline)) {
 			
 		}
+		showTopicModels();
+	}
 
+	public static void showTopicModels() throws Exception {
 		// print topic models for corpus
+		//TODO make dynamic
 		ParallelTopicModel model = ParallelTopicModel.read(MODEL_FILE);
 		model.printTopWords(System.out, 10, true);
 	}
-
+	
 	/**
 	 * Create the arff file
 	 * 
